@@ -10,13 +10,14 @@ import { CategoryDescription } from './Components/CategoryDescription';
 import { NoPage } from './Components/NoPage';
 import LoginPage from './Components/LoginPage';
 import SignupPage from './Components/SignupPage';
+import { Provider } from 'react-redux';
+import store from './app/store'
 
-export const CartContext = createContext();
 
 function App() {
 
   return (
-    
+    <Provider store={store}>
       <Router>
         <Header />
         <div className='container'>
@@ -31,7 +32,7 @@ function App() {
           </Routes>
         </div>
       </Router>
-  
+      </Provider>
   );
 }
 

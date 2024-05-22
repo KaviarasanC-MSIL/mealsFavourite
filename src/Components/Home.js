@@ -4,12 +4,14 @@ import { Product } from './Product';
 import { SearchHeader } from './SearchHeader';
 import emptysearch from '../assets/emptysearch.png';
 import CustomPopup from './CustomPopup';
+import { useSelector, useDispatch } from 'react-redux';
+import { setActionType, setShowPopup } from '../app/popupSlice';
 
 export const Home = () => {
     const [product, setProduct] = useState([]);
     const [filterData, setFilterData] = useState([]);
-    const [showPopup, setShowPopup] = useState(false);
-    const [actionType, setActionType] = useState('');
+    const dispatcher = useDispatch();
+    const { showPopup, actionType } = useSelector((state) => state.popup);
     const [email, setEmail] = useState('');
 
     useEffect(() => {
@@ -24,6 +26,7 @@ export const Home = () => {
                 }));
                 setProduct(productData);
                 setFilterData(productData);
+                handleInactiveUser();
             } catch (e) {
                 console.error("Something went wrong", e);
             }
@@ -34,45 +37,48 @@ export const Home = () => {
     const handleSearch = (e) => {
         const searchTerm = e.target.value.toLowerCase();
         if (searchTerm === '') {
-            setFilterData(product); 
+            setFilterData(product);
         } else {
             const filteredData = product.filter(product => product.productName.toLowerCase().includes(searchTerm));
-            setFilterData(filteredData); 
+            setFilterData(filteredData);
         }
-        handleInactiveUser(); 
+         handleInactiveUser();
     };
 
     const handleClosePopup = () => {
-        setShowPopup(false);
+        dispatcher(setShowPopup(false))
     };
 
     const handleLogin = () => {
         console.log('Redirecting to login page...');
-        setShowPopup(false);
-        return window.location.href = '/login'; 
+        dispatcher(setShowPopup(false))
+        return window.location.href = '/login';
     };
 
     const handleInactiveUser = () => {
-        const allUsersString = localStorage.getItem('user'); 
+        const allUsersString = localStorage.getItem('user');
         if (allUsersString) {
             const allUsers = JSON.parse(allUsersString);
-            allUsers.forEach(user => {
-                if (user.status === 'inactive') {
-                    setShowPopup(true);
-                    setActionType('status');
-                    setEmail(user.email);
-                    return; 
-                }
-            });
+            const isActive = allUsers.some(user => user.status === 'active');
+            if (isActive) {
+                const activeUser = allUsers.find(user => user.status === 'active');
+                setEmail(activeUser.email);
+            } else {              
+                console.log("---we have the status "+isActive)
+                dispatcher(setShowPopup(true));
+                dispatcher(setActionType('status'));
+                return
+            }
         }
     };
+    
 
-    useEffect(() => {
-        handleInactiveUser();
-    }, [product]); 
+    // useEffect(() => {
+    //     handleInactiveUser();
+    // }, [product]);
 
     const handleProductClick = () => {
-        handleInactiveUser(); 
+        handleInactiveUser();
     };
 
     return (
@@ -85,10 +91,10 @@ export const Home = () => {
                         <p>No Result found !!</p>
                     </div>
                 ) : (
-                    filterData.map((productData) => (
-                        <Product key={productData.productId} product={productData} email = {email} />
-                    ))
-                )}
+                        filterData.map((productData) => (
+                            <Product key={productData.productId} product={productData} email={email} />
+                        ))
+                    )}
             </div>
             {showPopup && <CustomPopup handleClose={handleClosePopup} handleLogin={handleLogin} />}
         </>

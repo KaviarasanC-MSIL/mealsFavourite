@@ -1,43 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Product.css';
+import { useDispatch } from 'react-redux';
+import { addToCart, removeFromCart } from '../app/cartSlice';
 
 export const Product = ({ product }) => {
     const [isProductInCart, setIsProductInCart] = useState(false);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const users = JSON.parse(localStorage.getItem('user')) || [];
         const activeUser = users.find(user => user.status === 'active');
         if (activeUser) {
             const cart = activeUser.cart || [];
-            const productInCart = cart.some(item => item.productName === product.productName);
+            const productInCart = cart.some(item => item.productId === product.productId);
             setIsProductInCart(productInCart);
         }
-    }, [product.productName]);
+    }, [product.productId]);
 
-    const handleAddToCart = () => {
+    const handleCartAction = () => {
         const users = JSON.parse(localStorage.getItem('user')) || [];
         const userIndex = users.findIndex(user => user.status === 'active');
+
         if (userIndex > -1) {
             let user = users[userIndex];
             user.cart = user.cart || [];
-            user.cart.push(product);
-            users[userIndex] = user;
-            localStorage.setItem('user', JSON.stringify(users));
-            setIsProductInCart(true);
-        }
-    };
 
-    const handleRemoveFromCart = () => {
-        const users = JSON.parse(localStorage.getItem('user')) || [];
-        const userIndex = users.findIndex(user => user.status === 'active');
-        if (userIndex > -1) {
-            let user = users[userIndex];
-            user.cart = user.cart || [];
-            user.cart = user.cart.filter(item => item.productName !== product.productName);
+            const productIndex = user.cart.findIndex(item => item.productId === product.productId);
+
+            if (productIndex === -1) {
+                user.cart.push(product);
+                setIsProductInCart(true);
+                dispatch(addToCart(product));
+            } else {
+                user.cart.splice(productIndex, 1);
+                setIsProductInCart(false);
+                dispatch(removeFromCart(product.productId));
+            }
+
             users[userIndex] = user;
             localStorage.setItem('user', JSON.stringify(users));
-            setIsProductInCart(false);
         }
     };
 
@@ -51,9 +53,9 @@ export const Product = ({ product }) => {
             <div className='details'>
                 <h3>{product.productName}</h3>
                 {isProductInCart ? (
-                    <button className='remove-cart-btn' onClick={handleRemoveFromCart}>Remove from Cart</button>
+                    <button className='remove-cart-btn' onClick={handleCartAction}>Remove from Cart</button>
                 ) : (
-                    <button onClick={handleAddToCart}>Add to Cart</button>
+                    <button onClick={handleCartAction}>Add to Cart</button>
                 )}
             </div>
         </div>
