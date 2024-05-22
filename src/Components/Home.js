@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import './Home.css';
 import { Product } from './Product';
 import { SearchHeader } from './SearchHeader';
-import emptysearch from '../assets/emptysearch.png'
+import emptysearch from '../assets/emptysearch.png';
+import CustomPopup from './CustomPopup';
 
 export const Home = () => {
     const [product, setProduct] = useState([]);
     const [filterData, setFilterData] = useState([]);
+    const [showPopup, setShowPopup] = useState(false);
+    const [actionType, setActionType] = useState('');
+    const [email, setEmail] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -36,22 +39,59 @@ export const Home = () => {
             const filteredData = product.filter(product => product.productName.toLowerCase().includes(searchTerm));
             setFilterData(filteredData); 
         }
+        handleInactiveUser(); 
+    };
+
+    const handleClosePopup = () => {
+        setShowPopup(false);
+    };
+
+    const handleLogin = () => {
+        console.log('Redirecting to login page...');
+        setShowPopup(false);
+        return window.location.href = '/login'; 
+    };
+
+    const handleInactiveUser = () => {
+        const userString = localStorage.getItem('user'); 
+        if (userString) {
+            const user = JSON.parse(userString);
+            setEmail(user.email)
+            console.log("Email:"+email)
+            if (user.status === 'inactive') {
+                setShowPopup(true);
+                setActionType('status');
+            }
+        }
+    };
+
+    useEffect(() => {
+        handleInactiveUser();
+    }, [email]); 
+
+    const handleProductClick = () => {
+        handleInactiveUser(); 
+        
     };
 
     return (
         <>
-          <SearchHeader handleSearch={handleSearch} />
-          <div className='product-container'>
+            <SearchHeader handleSearch={handleSearch} />
+            <div className='product-container' onClick={handleProductClick}>
                 {filterData.length === 0 ? (
                     <div className='empty-search'>
-                        <img src={emptysearch} alt =''/>
-                    <p>No Result found !!</p></div>
+                        <img src={emptysearch} alt='' />
+                        <p>No Result found !!</p>
+                    </div>
                 ) : (
                     filterData.map((productData) => (
-                        <Product key={productData.productId} product={productData} />
+                        <Product key={productData.productId} product={productData} email = {email} />
                     ))
                 )}
             </div>
+            {showPopup && <CustomPopup handleClose={handleClosePopup} handleLogin={handleLogin} />}
         </>
     );
 };
+
+export default Home;

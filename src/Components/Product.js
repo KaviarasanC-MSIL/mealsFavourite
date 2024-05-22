@@ -1,22 +1,47 @@
-/* eslint-disable jsx-a11y/img-redundant-alt */
-import React, { useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Product.css';
-import { CartContext } from '../App';
 
 export const Product = ({ product }) => {
-    const { cart, setCart } = useContext(CartContext);
+    const [isProductInCart, setIsProductInCart] = useState(false);
 
-    const addCart = () => {
-        setCart([...cart, product]);
+    useEffect(() => {
+        const users = JSON.parse(localStorage.getItem('user')) || [];
+        const activeUser = users.find(user => user.status === 'active');
+        if (activeUser) {
+            const cart = activeUser.cart || [];
+            const productInCart = cart.some(item => item.productName === product.productName);
+            setIsProductInCart(productInCart);
+        }
+    }, [product.productName]);
+
+    const handleAddToCart = () => {
+        const users = JSON.parse(localStorage.getItem('user')) || [];
+        const userIndex = users.findIndex(user => user.status === 'active');
+        if (userIndex > -1) {
+            let user = users[userIndex];
+            user.cart = user.cart || [];
+            user.cart.push(product);
+            users[userIndex] = user;
+            localStorage.setItem('user', JSON.stringify(users));
+            setIsProductInCart(true);
+        }
     };
-    
-    const removeCart = () => {
-        setCart(cart.filter((item) => item.productId !== product.productId));
+
+    const handleRemoveFromCart = () => {
+        const users = JSON.parse(localStorage.getItem('user')) || [];
+        const userIndex = users.findIndex(user => user.status === 'active');
+        if (userIndex > -1) {
+            let user = users[userIndex];
+            user.cart = user.cart || [];
+            user.cart = user.cart.filter(item => item.productName !== product.productName);
+            users[userIndex] = user;
+            localStorage.setItem('user', JSON.stringify(users));
+            setIsProductInCart(false);
+        }
     };
 
     return (
-        <>
         <div className='product'>
             <Link to={`/category/${product.productName}`} >
                 <div className='img'>
@@ -25,13 +50,12 @@ export const Product = ({ product }) => {
             </Link>
             <div className='details'>
                 <h3>{product.productName}</h3>
-                {cart.some((item) => item.productId === product.productId) ? (
-                    <button className='remove-cart-btn' onClick={removeCart}>Remove from Cart</button>
+                {isProductInCart ? (
+                    <button className='remove-cart-btn' onClick={handleRemoveFromCart}>Remove from Cart</button>
                 ) : (
-                    <button onClick={addCart}>Add to Cart</button>
+                    <button onClick={handleAddToCart}>Add to Cart</button>
                 )}
             </div>
         </div>
-        </>
     );
 };
