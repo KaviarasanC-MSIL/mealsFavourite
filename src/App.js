@@ -14,24 +14,15 @@ import SignupPage from './Components/SignupPage';
 export const CartContext = createContext();
 
 function App() {
-  const [data, setData] = useState({
-    formattedEmail: ''
-  });
-
-  const setEmail = (email) => {
-    setData({ formattedEmail: email });
-  };
- 
 
   return (
-    <CartContext.Provider value={{ data, setEmail }}>
+    
       <Router>
         <Header />
-        {console.log("app.js"+data.formattedEmail)}
         <div className='container'>
           <Routes>
             <Route path='/' element={<Home   />} />
-            <Route path='/favourite' element={<Favourite email={data.formattedEmail} />} />
+            <Route path='/favourite' element={<Favourite  />} />
             <Route path='/login' element={<LoginPage />} />
             <Route path='/signup' element={<SignupPage />} />
             <Route path='/category/:productName' element={<Catergory />} />
@@ -40,7 +31,7 @@ function App() {
           </Routes>
         </div>
       </Router>
-    </CartContext.Provider>
+  
   );
 }
 

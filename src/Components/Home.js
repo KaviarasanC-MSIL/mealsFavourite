@@ -53,25 +53,26 @@ export const Home = () => {
     };
 
     const handleInactiveUser = () => {
-        const userString = localStorage.getItem('user'); 
-        if (userString) {
-            const user = JSON.parse(userString);
-            setEmail(user.email)
-            console.log("Email:"+email)
-            if (user.status === 'inactive') {
-                setShowPopup(true);
-                setActionType('status');
-            }
+        const allUsersString = localStorage.getItem('user'); 
+        if (allUsersString) {
+            const allUsers = JSON.parse(allUsersString);
+            allUsers.forEach(user => {
+                if (user.status === 'inactive') {
+                    setShowPopup(true);
+                    setActionType('status');
+                    setEmail(user.email);
+                    return; 
+                }
+            });
         }
     };
 
     useEffect(() => {
         handleInactiveUser();
-    }, [email]); 
+    }, [product]); 
 
     const handleProductClick = () => {
         handleInactiveUser(); 
-        
     };
 
     return (
