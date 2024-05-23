@@ -53,17 +53,19 @@ export const Home = () => {
     };
 
     const handleInactiveUser = () => {
-        const allUsersString = localStorage.getItem('user'); 
+        const allUsersString = localStorage.getItem('user');
         if (allUsersString) {
             const allUsers = JSON.parse(allUsersString);
-            allUsers.forEach(user => {
-                if (user.status === 'inactive') {
-                    setShowPopup(true);
-                    setActionType('status');
-                    setEmail(user.email);
-                    return; // Stop iteration if an inactive user is found
-                }
-            });
+            const isActive = allUsers.some(user => user.status === 'active');
+            if (isActive) {
+                const activeUser = allUsers.find(user => user.status === 'active');
+                setEmail(activeUser.email);
+            } else {              
+                console.log("---we have the status "+isActive)
+                setShowPopup(true);
+                setActionType('status');
+                return
+            }
         }
     };
 
